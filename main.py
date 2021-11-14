@@ -1,57 +1,44 @@
-
-# -- --------------------------------------------------------------------------------------------------- -- #
-# -- MarketMaker-BackTest                                                                                -- #
-# -- --------------------------------------------------------------------------------------------------- -- #
-# -- file: main.py                                                                                       -- #
-# -- Description: Main execution logic for the project                                                   -- #
-# -- --------------------------------------------------------------------------------------------------- -- #
-# -- Author: IFFranciscoME - if.francisco.me@gmail.com                                                   -- #
-# -- license: MIT License                                                                                -- #
-# -- Repository: https://github.com/IFFranciscoME/MarketMaker-BackTest                                   -- #
-# --------------------------------------------------------------------------------------------------------- #
-
-# -- Load Packages for this script
 import pandas as pd
-import pandas as np
 
-# -- Load other scripts
-from data import fees_schedule, order_book
+from data import order_book
+import pickle
+from Functions import *
 
-# Small test
-exchanges = ["bitfinex", "kraken"]
-symbol = 'BTC/EUR'
-expected_volume = 0
 
-# Get fee schedule
-# fees = fees_schedule(exchange='kraken', symbol=symbol, expected_volume=expected_volume)
+exchanges = ["kraken", "ftx", "coinmate", "currencycom"]
+btc= 'BTC/USD'
+eth = 'ETH/USD'
+bnb = 'BNB/USD'
 
-# Massive download of OrderBook data
-# data = order_book(symbol=symbol, exchanges=exchanges, output='inplace', stop=None, verbose=True)
+data_BTC = order_book(symbol=btc, exchanges=exchanges, output='inplace', stop=None, verbose=True)
+data_ETH = order_book(symbol=eth, exchanges=exchanges, output='inplace', stop=None, verbose=True)
+data_BNB = order_book(symbol=bnb, exchanges=exchanges, output='inplace', stop=None, verbose=True)
 
-# Test
-# data['kraken'][list(data['kraken'].keys())[2]]
+# Diccionarios
+dic_BTC = crypto(data_BTC, exchanges)
+dic_ETH = crypto(data_ETH, exchanges)
+dic_BNB = crypto(data_ETH, exchanges)
 
-# Read previously downloaded file
-ob_data = pd.read_json('files/orderbooks_06jun2021.json', orient='values', typ='series')
+dic_FINAL_BTC = open("dic_BTC.pkl", "wb")
+dic_FINAL_ETH = open("dic_ETH.pkl", "wb")
+dic_FINAL_BNB = open("dic_BNB.pkl", "wb")
 
-# -- Simulation of trades (Pending)
+pickle.dump(dic_BTC, dic_FINAL_BTC)
+pickle.dump(dic_ETH, dic_FINAL_ETH)
+pickle.dump(dic_BNB, dic_FINAL_BNB)
 
-"""
-- Type A: Make a BID in Kraken, then Take BID in Bitfinex
+dic_FINAL_BTC.close()
+dic_FINAL_ETH.close()
+dic_FINAL_BNB.close()
 
-Check Signal_BID
-    Difference between BIDs on Origin and Destination is greater than Maker_Margin_BID
-    Make on Destination and Take on Origin
+df_BTC = pd.DataFrame(dic_BTC)
+df_ETH = pd.DataFrame(dic_ETH)
+df_BNB = pd.DataFrame(dic_BNB)
 
-kr_maker_bid * (1 + kr_maker_fee) = bf_taker_bid * (1 - bf_taker_fee)
-e.g. -> 5942.5638 * (1 + 0.0016) = 5964.00 * (1 - 0.0020) = 0
+print(df_BTC)
+print(df_ETH)
+print(df_BNB)
 
-- Type B: Take an ASK on Bitfinex, then Make an ASK in Kraken
-
-Check Signal_ASK
-    Difference between ASKs on Origin and Destination is greater than Maker_Margin_ASK
-    Take on Origin and Maker on Destination
-
-bf_taker_ask * (1 + bf_taker_fee) = kr_maker_ask * (1 - kr_maker_fee)
-e.g. -> 6000 * (1 + 0.0020) - 6021.6346 * (1 - 0.0016) = 0
-"""
+df_BTC.to_pickle("df_BTC.pkl")
+df_ETH.to_pickle("df_ETH.pkl")
+df_BNB.to_pickle("df_BNB.pkl")
